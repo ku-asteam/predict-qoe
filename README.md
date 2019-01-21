@@ -13,7 +13,7 @@ Deeplearning-based QoE Prediction Model is a implementation of aSTEAM Project (N
 * Import CSI, QoE data
   1. Get raw data
   2. Pre-processing such as clearing, and reducing dimensions
-  3. Cropping whole data to training data and test data
+  3. Cropping whole data to training data (`80%`) and test data(`20%`)
 * Create Deep Learning Prediction Model
   1. Create a prediction model consisting of 4 layers, a cost function, and an Adamoptimizer
   2. Learn the generated prediction model through training data
