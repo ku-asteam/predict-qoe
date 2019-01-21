@@ -6,6 +6,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error
+import json
 
 tf.set_random_seed(777)
 use_batchnorm = True
@@ -65,6 +66,15 @@ def PreProcessing(rawdata):
     meanVector = np.mean(PCAdata, axis=0)
     return meanVector
 
+def get_QoE(file_path, folder1):
+    with open(file_path + '/' + folder1 + '.json', mode='r', encoding='UTF8') as f:
+        json_string = json.load(f)
+    data = json.dumps(json_string, indent=2)
+    json_acceptable_string = data.replace("'", "\"")
+    json_list = json.loads(json_acceptable_string)
+    QoEData = json_list["visualMetrics"][0]["SpeedIndex"]
+    return QoEData
+
 if __name__ == "__main__":
     i = 1
     x_data = []
@@ -80,54 +90,17 @@ if __name__ == "__main__":
     print(x_data)
     print("\n\nx_data", x_data)
 
-    y_data = np.array([
-        [899.],
-        [935.],
-        [1570.],
-        [1151.],
-        [1619.],
-        [1487.],
-        [864.],
-        [858.],
-        [992.],
-        [835.],
-        [1760.],
-        [1654.],
-        [1950.],
-        [1834.],
-        [2626.],
-        [2363.],
-        [1747.],
-        [1667.],
-        [1151.],
-        [1141.],
-        [1144.],
-        [1271.],
-        [1150.],
-        [1172.],
-        [920.],
-        [1108.],
-        [1535.],
-        [1403.],
-        [1479.],
-        [1771.],
-        [2108.],
-        [2633.],
-        [2367.],
-        [1642.],
-        [1336.],
-        [1387.],
-        ])
+    y_data = np.array(get_QoE())
 
     scaler = MinMaxScaler(feature_range=(0, 100))
     y_data = scaler.fit_transform(y_data)
     print(y_data)
 
-    trainingdata = x_data[:25]
-    label = y_data[:25]
+    trainingdata = x_data[:80/len(x_data)]
+    label = y_data[:80/len(x_data)]
 
-    testdata = x_data[25:]
-    testlabel = y_data[25:]
+    testdata = x_data[20/len(x_data):]
+    testlabel = y_data[20/len(x_data):]
 
     x = tf.placeholder(tf.float32, shape=[None, np.size(trainingdata, 1)])
     y = tf.placeholder(tf.float32, shape=[None, np.size(label, 1)])
@@ -136,29 +109,21 @@ if __name__ == "__main__":
                          initializer=tf.contrib.layers.xavier_initializer())
     b1 = tf.Variable(tf.random_normal([30]), name='bias1')
     hiddenlayer1 = tf.matmul(x, W1) + b1
-    #if use_batchnorm:
-    #    hiddenlayer1 = tf.layers.batch_normalization(hiddenlayer1)
 
     W2 = tf.Variable(tf.random_normal([30, 15]), name='weight2')
     b2 = tf.Variable(tf.random_normal([15]), name='bias2')
     hiddenlayer2 = tf.matmul(hiddenlayer1, W2) + b2
-    #if use_batchnorm:
-    #    hiddenlayer2 = tf.layers.batch_normalization(hiddenlayer2)
 
     W3 = tf.Variable(tf.random_normal([15, 10]), name='weight3')
     b3 = tf.Variable(tf.random_normal([10]), name='bias3')
     hiddenlayer3 = tf.matmul(hiddenlayer2, W3) + b3
-    #if use_batchnorm:
-    #    hiddenlayer3 = tf.layers.batch_normalization(hiddenlayer3)
 
     W4 = tf.Variable(tf.random_normal([10, 1]), name='weight4')
     b4 = tf.Variable(tf.random_normal([1]), name='bias4')
     hypothesis = tf.matmul(hiddenlayer3, W4) + b4
 
     cost = tf.reduce_mean(tf.square(hypothesis - y))
-
     optimizer = tf.train.AdamOptimizer(learning_rate=0.02)
-
     train = optimizer.minimize(cost)
 
     sess = tf.Session()
@@ -170,7 +135,6 @@ if __name__ == "__main__":
         _, cost_val, = sess.run([train, cost], feed_dict={x: trainingdata, y: label})
         if step % 200 == 0:
             print("\nStep: ", step, "\nCost: ", cost_val)
-            # if step > 5000:
             W_history.append(step)
             cost_history.append(cost_val)
 
@@ -193,10 +157,8 @@ if __name__ == "__main__":
     print("RMSE ", RMSE)
 
     predict_val = sess.run(hypothesis, feed_dict={x: testdata})
-
     scaler = MinMaxScaler(feature_range=(0, 100))
     predict_val = scaler.fit_transform(predict_val)
-
     differ1 = 0
     count1 = 0
     differ2 = 0
@@ -211,10 +173,8 @@ if __name__ == "__main__":
 
     print("Training Data", len(testlabel), "개 / ", "Training Accuracy:", round(count1 / len(testlabel) * 100), "%",
           "/ Total differ:", differ2)
-
     RMSE = mean_squared_error(testlabel, predict_val)**0.5
     print("RMSE ", RMSE)
-
     plt.plot(W_history, cost_history)
     plt.ylabel('Cost')
     plt.xlabel('Step')
