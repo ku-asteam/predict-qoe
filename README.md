@@ -18,5 +18,5 @@ Deeplearning-based QoE Prediction Model is a implementation of aSTEAM Project (N
   1. Create a prediction model consisting of 4 layers, a cost function, and an Adamoptimizer
   2. Learn the generated prediction model through training data
 * Test Deep Learning Prediction Model
-  1. Test Predection Model through test data
-  2. Evaluate of Deep Learning Prediction Model
+  1. Test predection model through test data
+  2. Evaluate of deep learning prediction model
