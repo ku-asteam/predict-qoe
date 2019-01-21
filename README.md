@@ -10,5 +10,7 @@ Deeplearning-based QoE Prediction Model is a implementation of aSTEAM Project (N
 * Please import packages (tensorflow, sklearn.decomposition.PCA, itertools, numpy, sklearn.preprocessing.MinMaxScaler, sklearn.metrics.mean_squared_error)
 
 ## Instructions
+1. Get raw data
+2. Preprocessing raw data like slicing, 
 
 
